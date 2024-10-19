@@ -1,7 +1,7 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { Keyv } from 'keyv';
+import { Inject, Injectable } from "@nestjs/common";
+import { Keyv } from "keyv";
 
-import { CACHE_PROVIDE } from './cache.constant';
+import { CACHE_PROVIDE } from "./cache.constant";
 
 @Injectable()
 export class CacheService {

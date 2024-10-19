@@ -9,6 +9,8 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+    networks:
+      - chat-network
 
   redis:
     image: redis:7
@@ -16,6 +18,8 @@ services:
     restart: always
     ports:
       - "6379:6379"
+    networks:
+      - chat-network
 
   chat-server:
     build:
@@ -23,13 +27,14 @@ services:
       dockerfile: Dockerfile
     restart: always
     deploy:
-      replicas: 3
+      replicas: 3 
     ports:
       - "3001"
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/chat
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
+      - REDIS_URL=redis://redis:6379
+      - REDIS_TTL=3600 
+      - SESSION_SECRET=af2693b7-a522-4979-9e7b-a3c4d963a210
     networks:
       - chat-network
 

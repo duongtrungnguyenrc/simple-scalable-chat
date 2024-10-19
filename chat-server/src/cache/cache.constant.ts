@@ -1,1 +1,1 @@
-export const CACHE_PROVIDE = 'CACHE';
+export const CACHE_PROVIDE = "CACHE";
