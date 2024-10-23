@@ -2,35 +2,35 @@ import { Body, Controller, Get, Post, Request, UseGuards } from "@nestjs/common"
 import { ApiBody, ApiTags } from "@nestjs/swagger";
 import { Request as ER } from "express";
 
-import { LocalAuthGuard, SessionAuthGuard } from "./guards";
-import { CreateUserDto, User } from "@app/user";
+import { CreateUserDto, User } from "@modules/user";
 import { AuthService } from "./auth.service";
+import { Public } from "@common/decorators";
+import { LocalAuthGuard } from "./guards";
 
 @Controller("auth")
 @ApiTags("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @UseGuards(LocalAuthGuard)
-  @Post("sign-in")
+  @Post("/sign-in")
   signIn(@Request() req: ER) {
-    return this.authService.signIn(req)
+    return this.authService.signIn(req);
   }
 
-  @Post("sign-up")
+  @Post("/sign-up")
   @ApiBody({ type: CreateUserDto })
   async signUp(@Body() data: CreateUserDto): Promise<Omit<User, "password">> {
     return await this.authService.signUp(data);
   }
 
-  @UseGuards(SessionAuthGuard)
-  @Get("sign-out")
+  @Get("/sign-out")
   async signOut(@Request() req: ER) {
     return await this.authService.signOut(req);
   }
 
-  @Get("status")
-  @UseGuards(SessionAuthGuard)
+  @Get("/status")
   status() {
     return { message: "authenticated" };
   }

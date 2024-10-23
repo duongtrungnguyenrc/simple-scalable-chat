@@ -1,10 +1,9 @@
 import { InjectModel } from "@nestjs/mongoose";
 import { FilterQuery, Model } from "mongoose";
 import { Injectable } from "@nestjs/common";
-import { hash, genSalt } from "bcrypt";
 
-import { HASHED_ROUNDS } from "@app/common";
-import { CacheService } from "@app/cache";
+import { CacheService } from "@modules/cache";
+import { hashPassword } from "@common/utils";
 import { CreateUserDto } from "./dtos";
 import { User } from "./schemas";
 
@@ -18,7 +17,7 @@ export class UserService {
   async createUser(data: CreateUserDto): Promise<Omit<User, "password">> {
     const { password, ...userData } = data;
 
-    const hashedPassword: string = await this.hashPassword(password);
+    const hashedPassword: string = await hashPassword(password);
 
     const createdUser: User = await this.userModel.create({ ...userData, password: hashedPassword });
     delete createdUser.password;
@@ -34,10 +33,5 @@ export class UserService {
     }
 
     return await this.userModel.findOne(filter);
-  }
-
-  async hashPassword(password: string): Promise<string> {
-    const salt = await genSalt(HASHED_ROUNDS);
-    return hash(password, salt);
   }
 }

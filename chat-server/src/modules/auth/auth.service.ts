@@ -2,7 +2,7 @@ import { BadRequestException, Injectable, InternalServerErrorException, Unauthor
 import { Request } from "express";
 import { compare } from "bcrypt";
 
-import { CreateUserDto, User, UserService } from "@app/user";
+import { CreateUserDto, User, UserService } from "@modules/user";
 
 @Injectable()
 export class AuthService {

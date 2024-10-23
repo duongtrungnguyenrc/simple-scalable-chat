@@ -1,14 +1,14 @@
-import { ConnectedSocket, MessageBody, SubscribeMessage, WebSocketGateway, WebSocketServer, WsException } from "@nestjs/websockets";
+import { ConnectedSocket, MessageBody, OnGatewayConnection, SubscribeMessage, WebSocketGateway, WebSocketServer } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
+import { Logger, UseGuards } from "@nestjs/common";
 
+import { SocketAuth } from "@modules/auth/guards";
 import { ChatService } from "./chat.service";
-import { Logger } from "@nestjs/common";
 
 @WebSocketGateway({ namespace: "chat" })
 export class ChatGateway {
   @WebSocketServer()
   private server: Server;
-
   private readonly logger: Logger = new Logger(ChatGateway.name);
 
   constructor(private readonly chatService: ChatService) {}

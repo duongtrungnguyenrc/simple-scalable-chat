@@ -1,12 +1,12 @@
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { PassportModule } from "@nestjs/passport";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Module } from "@nestjs/common";
 
-import { CacheModule } from "@app/cache";
-import { ChatModule } from "@app/chat";
-import { UserModule } from "@app/user";
-import { AuthModule } from "@app/auth";
-import { PassportModule } from "@nestjs/passport";
+import { CacheModule } from "@modules/cache";
+import { ChatModule } from "@modules/chat";
+import { UserModule } from "@modules/user";
+import { AuthModule } from "@modules/auth";
 
 @Module({
   imports: [
