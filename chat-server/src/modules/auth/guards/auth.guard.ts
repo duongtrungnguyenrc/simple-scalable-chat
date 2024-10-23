@@ -1,10 +1,11 @@
-import { CanActivate, ExecutionContext } from "@nestjs/common";
+import { CanActivate, ExecutionContext, Injectable } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { Observable } from "rxjs";
 import { Request } from "express";
 
 import { PUBLIC_ROUTE_KEY } from "@common/constants";
 
+@Injectable()
 export class AuthGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 

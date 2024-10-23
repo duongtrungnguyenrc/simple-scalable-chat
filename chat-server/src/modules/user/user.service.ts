@@ -25,13 +25,19 @@ export class UserService {
     return createdUser;
   }
 
-  async getUser(filter: FilterQuery<User>, raw: boolean = false): Promise<User | null> {
+  async getUser(filter: FilterQuery<User>, includes?: (keyof User)[], raw: boolean = false): Promise<User | null> {
     if (!raw) {
-      const cachedUser: User = await this.cacheService.get<User>("");
+      const cachedUser: User = await this.cacheService.get<User>(`user:${filter._id}`);
 
       if (cachedUser) return cachedUser;
     }
 
-    return await this.userModel.findOne(filter);
+    const includesKeys: string = includes?.map((key) => `+${key}`).join(" ");
+
+    const user = await this.userModel.findOne(filter, includesKeys);
+
+    await this.cacheService.set(`user:${user._id}`, user);
+
+    return user;
   }
 }

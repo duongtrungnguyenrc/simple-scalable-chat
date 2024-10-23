@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Request, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, HttpCode, Post, Request, UseGuards } from "@nestjs/common";
 import { ApiBody, ApiTags } from "@nestjs/swagger";
 import { Request as ER } from "express";
 
@@ -15,8 +15,9 @@ export class AuthController {
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post("/sign-in")
-  signIn(@Request() req: ER) {
-    return this.authService.signIn(req);
+  @HttpCode(200)
+  async signIn(@Request() req: ER): Promise<Express.User> {
+    return await this.authService.signIn(req);
   }
 
   @Post("/sign-up")
@@ -25,13 +26,14 @@ export class AuthController {
     return await this.authService.signUp(data);
   }
 
-  @Get("/sign-out")
+  @Post("/sign-out")
+  @HttpCode(200)
   async signOut(@Request() req: ER) {
     return await this.authService.signOut(req);
   }
 
   @Get("/status")
-  status() {
-    return { message: "authenticated" };
+  status(@Request() req: ER): Express.User {
+    return req.user;
   }
 }

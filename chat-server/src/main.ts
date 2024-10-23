@@ -2,29 +2,23 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import { SwaggerModule, DocumentBuilder } from "@nestjs/swagger";
 import { NestFactory, Reflector } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
-import * as session from "express-session";
 import * as passport from "passport";
 
-import { AuthGuard } from "@modules/auth";
+import { getSessionMiddleware } from "@common/middlewares";
 import { ChatSocketAdapter } from "@modules/chat";
+import { AuthGuard } from "@modules/auth";
 import { AppModule } from "@modules/app";
 
 async function bootstrap() {
   const app: INestApplication = await NestFactory.create(AppModule);
   const configService: ConfigService = app.get(ConfigService);
   const reflector: Reflector = app.get(Reflector);
+  const sessionMiddleware = getSessionMiddleware(configService);
 
-  const sessionMiddleware = session({
-    secret: configService.get<string>("SESSION_SECRET"),
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: configService.get<string>("NODE_ENV") === "production",
-      maxAge: 3600000,
-    },
+  app.enableCors({
+    origin: "http://localhost:3000",
+    credentials: true,
   });
-
   app.setGlobalPrefix("/api");
   app.useWebSocketAdapter(new ChatSocketAdapter(app, sessionMiddleware));
   app.useGlobalPipes(new ValidationPipe());
