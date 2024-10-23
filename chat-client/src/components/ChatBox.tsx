@@ -7,7 +7,7 @@ import classNames from "classnames";
 import ChatRoomListing from "./ChatRoomListing";
 import { getRooms } from "@app/utils";
 
-interface IProps {
+type IProps = {
   className?: string;
 }
 

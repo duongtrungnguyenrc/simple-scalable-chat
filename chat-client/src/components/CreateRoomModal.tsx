@@ -1,13 +1,12 @@
 'use client';
 
 import { Button, Form, Input, Modal } from "antd";
-import { PlusCircle } from "lucide-react";
-import Link from "next/link";
 import React, { FC, useState } from "react";
+import { PlusCircle } from "lucide-react";
 
-interface IProps { };
+type IProps = { };
 
-const CreateRoomModal: FC<IProps> = (props) => {
+const CreateRoomModal: FC<IProps> = ({}) => {
     const [modalCreate, setModalCreate] = useState(false);
 
     const onFinish = (values: any) => {

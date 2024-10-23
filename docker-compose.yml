@@ -49,7 +49,7 @@ services:
     depends_on:
       - nginx
     environment:
-      - NEXT_PUBLIC_API_URL=http://nginx
+      - NEXT_PUBLIC_API_URL=http://nginx/api
     networks:
       - chat-network
 

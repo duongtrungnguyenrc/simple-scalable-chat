@@ -1,24 +1,28 @@
-import Image from "next/image";
 import React, { FC, ReactNode } from "react";
+import Image from "next/image";
 
-interface IProps {
-    children: ReactNode
+import { AuthProtect } from "@app/components";
+
+type IProps = {
+  children: ReactNode;
 };
 
-const AuthLayout: FC<IProps> = ({ children, ...props }) => {
-    return <main className="grid grid-cols-12 gap-x-3">
+const AuthLayout: FC<IProps> = ({ children }) => {
+  return (
+    <AuthProtect status={true} navigateTo="/">
+      <main className="grid grid-cols-12 gap-x-3">
         <div className="relative col-span-8 h-[100vh]">
-            <Image
-                src="/images/auth-bg.jpg"
-                alt="background image"
-                fill
-                className="object-cover h-full w-full"
-            />
+          <Image
+            src="/images/auth-bg.jpg"
+            alt="background image"
+            fill
+            className="object-cover h-full w-full"
+          />
         </div>
-        <div className="p-10 col-span-4">
-            {children}
-        </div>
-    </main>
+        <div className="p-10 col-span-4">{children}</div>
+      </main>
+    </AuthProtect>
+  );
 };
 
 export default AuthLayout;

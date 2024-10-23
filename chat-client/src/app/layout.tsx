@@ -1,6 +1,8 @@
-import type { Metadata } from "next";
-import "./globals.css";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import type { Metadata } from "next";
+
+import { AuthProvider, ReactQueryProvider } from "@app/components";
+import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -15,7 +17,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <AntdRegistry>{children}</AntdRegistry>
+        <ReactQueryProvider>
+          <AntdRegistry>
+            <AuthProvider>{children}</AuthProvider>
+          </AntdRegistry>
+        </ReactQueryProvider>
       </body>
     </html>
   );

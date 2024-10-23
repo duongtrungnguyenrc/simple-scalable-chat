@@ -4,7 +4,7 @@ import React, { FC } from "react";
 import { Button, Form, Input } from 'antd';
 import Link from "next/link";
 
-interface IProps {
+type IProps = {
     className?: string;
 };
 

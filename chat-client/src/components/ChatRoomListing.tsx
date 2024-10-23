@@ -1,6 +1,5 @@
 "use client";
 
-import { generateRooms } from "@app/utils";
 import classNames from "classnames";
 import { FC, useEffect } from "react";
 
@@ -10,8 +9,11 @@ type ChatRoomListingProps = {
   setActiveEmail: React.Dispatch<React.SetStateAction<string>>;
 };
 
-const ChatRoomListing: FC<ChatRoomListingProps> = ({ activeEmail, setActiveEmail, rooms }: ChatRoomListingProps) => {
-
+const ChatRoomListing: FC<ChatRoomListingProps> = ({
+  activeEmail,
+  setActiveEmail,
+  rooms,
+}: ChatRoomListingProps) => {
   useEffect(() => {
     if (rooms.length > 0) {
       setActiveEmail(rooms[0]?.email);
@@ -23,13 +25,13 @@ const ChatRoomListing: FC<ChatRoomListingProps> = ({ activeEmail, setActiveEmail
       {rooms.map((room) => {
         const lastMessage: Message = room.messages[room.messages.length - 1];
         const isActive: boolean = activeEmail === room.email;
-        
+
         return (
           <li
             key={room._id}
             className={classNames(
               "flex items-start gap-x-3 px-3 py-4 w-full group hover:bg-gray-100 cursor-pointer transition-all",
-              isActive && "bg-gray-100",
+              isActive && "bg-gray-100"
             )}
             onClick={() => setActiveEmail(room.email)}
           >
@@ -37,7 +39,7 @@ const ChatRoomListing: FC<ChatRoomListingProps> = ({ activeEmail, setActiveEmail
               <div
                 className={classNames(
                   "p-3 rounded-full flex items-center group-hover:bg-white justify-center",
-                  isActive ? "bg-white" : "bg-gray-100",
+                  isActive ? "bg-white" : "bg-gray-100"
                 )}
               >
                 <svg
@@ -53,7 +55,8 @@ const ChatRoomListing: FC<ChatRoomListingProps> = ({ activeEmail, setActiveEmail
             <div className="flex-grow min-w-0">
               <h1 className="text-sm font-semibold">{room._id}</h1>
               <p className="text-xs truncate text-gray-500 mt-1">
-                {lastMessage?.from === "ME" ? "You" : "Others"}: {lastMessage?.message}
+                {lastMessage?.from === "ME" ? "You" : "Others"}:{" "}
+                {lastMessage?.message}
               </p>
             </div>
             <span className="text-xs font-light">20:20 PM</span>
