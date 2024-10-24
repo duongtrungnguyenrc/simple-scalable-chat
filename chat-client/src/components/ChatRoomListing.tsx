@@ -4,27 +4,27 @@ import classNames from "classnames";
 import { FC, useEffect } from "react";
 
 type ChatRoomListingProps = {
-  activeEmail: string;
+  activeRoom: string;
   rooms: Room[];
-  setActiveEmail: React.Dispatch<React.SetStateAction<string>>;
+  setActiveRoom: React.Dispatch<React.SetStateAction<string>>;
 };
 
 const ChatRoomListing: FC<ChatRoomListingProps> = ({
-  activeEmail,
-  setActiveEmail,
+  activeRoom,
+  setActiveRoom,
   rooms,
 }: ChatRoomListingProps) => {
   useEffect(() => {
     if (rooms.length > 0) {
-      setActiveEmail(rooms[0]?.email);
+      setActiveRoom(rooms[0]?._id);
     }
   }, []);
 
   return (
-    <ul className="border bg-white rounded md:col-span-4 flex flex-col col-span-full overflow-y-auto max-h-[80vh] custom-scroll">
+    <ul className="border-e bg-white md:col-span-3 flex flex-col col-span-full overflow-y-auto h-full custom-scroll">
       {rooms.map((room) => {
-        const lastMessage: Message = room.messages[room.messages.length - 1];
-        const isActive: boolean = activeEmail === room.email;
+        const lastMessage: Message = room.messages[0];
+        const isActive: boolean = activeRoom === room._id;
 
         return (
           <li
@@ -33,7 +33,7 @@ const ChatRoomListing: FC<ChatRoomListingProps> = ({
               "flex items-start gap-x-3 px-3 py-4 w-full group hover:bg-gray-100 cursor-pointer transition-all",
               isActive && "bg-gray-100"
             )}
-            onClick={() => setActiveEmail(room.email)}
+            onClick={() => setActiveRoom(room._id)}
           >
             <div className="flex-shrink-0">
               <div
@@ -53,11 +53,11 @@ const ChatRoomListing: FC<ChatRoomListingProps> = ({
               </div>
             </div>
             <div className="flex-grow min-w-0">
-              <h1 className="text-sm font-semibold">{room._id}</h1>
-              <p className="text-xs truncate text-gray-500 mt-1">
-                {lastMessage?.from === "ME" ? "You" : "Others"}:{" "}
-                {lastMessage?.message}
-              </p>
+              <h1 className="text-sm font-semibold">{room.name}</h1>
+              <span className="text-xs truncate text-gray-500 mt-1 flex gap-2">
+                {lastMessage?.from === "ME" ? "You" : "Others"}:
+                <p>{lastMessage?.content}</p>
+              </span>
             </div>
             <span className="text-xs font-light">20:20 PM</span>
           </li>

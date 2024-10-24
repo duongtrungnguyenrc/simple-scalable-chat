@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { ApiProperty } from "@nestjs/swagger";
 
 export class CreateRoomDto {
@@ -8,8 +8,9 @@ export class CreateRoomDto {
   name: string;
 
   @ApiProperty()
-  @IsBoolean()
-  public: boolean;
+  @IsNumber()
+  @IsOptional()
+  maxMembers?: number;
 
   @ApiProperty()
   @IsString()

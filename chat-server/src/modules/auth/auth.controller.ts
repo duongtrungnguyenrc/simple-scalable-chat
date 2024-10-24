@@ -21,6 +21,7 @@ export class AuthController {
   }
 
   @Post("/sign-up")
+  @Public()
   @ApiBody({ type: CreateUserDto })
   async signUp(@Body() data: CreateUserDto): Promise<Omit<User, "password">> {
     return await this.authService.signUp(data);

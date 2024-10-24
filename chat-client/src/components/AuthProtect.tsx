@@ -23,8 +23,6 @@ const AuthProtect: FC<AuthProtectProps> = ({
     router.replace(navigateTo);
   }
 
-  console.log(auth);
-
   return ready && children;
 };
 

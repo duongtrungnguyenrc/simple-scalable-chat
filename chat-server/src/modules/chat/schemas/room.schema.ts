@@ -1,11 +1,12 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { Document, Types } from "mongoose";
+import { Types } from "mongoose";
 
 import { Message } from "./message.schema";
+import { BaseDocument } from "@app/common";
 import { User } from "@modules/user";
 
 @Schema({ timestamps: true })
-export class Room extends Document<String> {
+export class Room extends BaseDocument {
   @Prop({ type: Types.ObjectId, ref: "User" })
   author: User;
 
@@ -17,6 +18,9 @@ export class Room extends Document<String> {
 
   @Prop({ default: false })
   isDeleted: boolean;
+
+  @Prop({ required: false })
+  maxMembers?: number;
 
   @Prop({ type: [{ type: Types.ObjectId }], ref: "Message", default: [] })
   messages: Array<Message>;

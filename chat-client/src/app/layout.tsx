@@ -1,4 +1,5 @@
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import { Toaster } from "react-hot-toast";
 import type { Metadata } from "next";
 
 import { AuthProvider, ReactQueryProvider } from "@app/components";
@@ -22,6 +23,9 @@ export default function RootLayout({
             <AuthProvider>{children}</AuthProvider>
           </AntdRegistry>
         </ReactQueryProvider>
+        <div>
+          <Toaster position="bottom-center" />
+        </div>
       </body>
     </html>
   );

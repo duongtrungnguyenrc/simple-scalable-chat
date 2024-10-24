@@ -11,13 +11,11 @@ type IProps = {
 };
 
 const LoginForm: FC<IProps> = ({ className }) => {
-  const { mutate } = useSignIn();
-
-  const onFinish = (data: SignInDto) => mutate(data);
+  const { mutate: onSignIn, error } = useSignIn();
 
   return (
     <div className={className}>
-      <Form name="login" layout="vertical" onFinish={onFinish}>
+      <Form name="login" layout="vertical" onFinish={onSignIn}>
         <Form.Item
           name="email"
           label="Tên tài khoản"
@@ -32,6 +30,12 @@ const LoginForm: FC<IProps> = ({ className }) => {
         >
           <Input className="py-3" type="password" placeholder="Password" />
         </Form.Item>
+
+        {error && (
+          <label className="text-red-500 transition-all text-xs">
+            {error.message}
+          </label>
+        )}
 
         <Form.Item>
           <Button className="mt-3" block type="primary" htmlType="submit">

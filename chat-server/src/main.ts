@@ -16,7 +16,7 @@ async function bootstrap() {
   const sessionMiddleware = getSessionMiddleware(configService);
 
   app.enableCors({
-    origin: "http://localhost:3000",
+    origin: [configService.get<string>("CLIENT_IP_ORIGIN"), configService.get<string>("CLIENT_ORIGIN")],
     credentials: true,
   });
   app.setGlobalPrefix("/api");

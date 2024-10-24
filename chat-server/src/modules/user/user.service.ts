@@ -36,7 +36,7 @@ export class UserService {
 
     const user = await this.userModel.findOne(filter, includesKeys);
 
-    await this.cacheService.set(`user:${user._id}`, user);
+    if (user) await this.cacheService.set(`user:${user._id}`, user);
 
     return user;
   }

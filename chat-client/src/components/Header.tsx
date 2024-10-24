@@ -22,7 +22,7 @@ const Header: FC<IProps> = () => {
   };
 
   return (
-    <header className="max-h-[80px] bg-white shadow-sm p-3 flex items-center">
+    <header className="max-h-[80px] bg-white shadow-sm p-3 flex items-center border-b">
       <Link href="/" className="font-semibold">
         CHATCHIT.COM
       </Link>
@@ -37,7 +37,7 @@ const Header: FC<IProps> = () => {
             content={
               <button
                 onClick={signOut}
-                className="hover:bg-gray-50 text-sm py-2 px-1 rounded flex gap-x-2 items-center"
+                className="hover:bg-gray-50 text-sm py-2 px-1 rounded flex gap-x-2 items-center justify-center w-full border"
               >
                 Đăng xuất <LogOut size={14} />
               </button>

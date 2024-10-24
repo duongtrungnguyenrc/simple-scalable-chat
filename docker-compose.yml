@@ -33,25 +33,27 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017/chat
       - REDIS_URL=redis://redis:6379
-      - REDIS_TTL=3600 
+      - REDIS_TTL=3600000
+      - CLIENT_IP_ORIGIN=http://127.0.0.1:3000
+      - CLIENT_ORIGIN=http://localhost:3000
       - SESSION_SECRET=af2693b7-a522-4979-9e7b-a3c4d963a210
     networks:
       - chat-network
 
-  chat-client:
-    build:
-      context: ./chat-client
-      dockerfile: Dockerfile
-    container_name: chat-client
-    restart: always
-    ports:
-      - "3000:3000"
-    depends_on:
-      - nginx
-    environment:
-      - NEXT_PUBLIC_API_URL=http://nginx/api
-    networks:
-      - chat-network
+  # chat-client:
+  #   build:
+  #     context: ./chat-client
+  #     dockerfile: Dockerfile
+  #   container_name: chat-client
+  #   restart: always
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - nginx
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://nginx/api
+  #   networks:
+  #     - chat-network
 
   nginx:
     image: nginx:latest

@@ -5,15 +5,30 @@ type ChatMessageProps = {
   children?: ReactNode;
   time?: string;
   typing?: boolean;
-  isMe: boolean;
+  from: MessageFrom;
 };
 
-const ChatMessage: FC<ChatMessageProps> = ({ children, time, typing = false, isMe }: ChatMessageProps) => {
+const ChatMessage: FC<ChatMessageProps> = ({
+  children,
+  time,
+  typing = false,
+  from,
+}: ChatMessageProps) => {
+  const isMe = from === "ME";
+
+  console.log(from);
+
   return (
-    <div className={classNames("flex px-3 w-full mt-2 fade-in-show", isMe ? "justify-end" : "justify-start")}>
+    <div
+      className={classNames(
+        "flex px-3 w-full mt-2 fade-in-show justify-center",
+        from === "OTHERS" ? "justify-start" : "",
+        from === "ME" ? "justify-end" : ""
+      )}
+    >
       <div className="flex flex-col">
         <div className="flex max-w-[80%]">
-          {!isMe && (
+          {from === "OTHERS" && (
             <div className="flex-shrink-0 mr-2">
               <div className="bg-gray-100 p-2 rounded-full flex items-center justify-center">
                 <svg
@@ -30,7 +45,9 @@ const ChatMessage: FC<ChatMessageProps> = ({ children, time, typing = false, isM
           <p
             className={classNames(
               "p-3 rounded-xl text-sm text-nowrap",
-              isMe ? " bg-black text-white" : " bg-gray-100 text-black",
+              from === "OTHERS" ? "bg-gray-100 text-black" : "",
+              from === "ME" ? "bg-black text-white" : "",
+              from === "SYSTEM" ? "text-xs text-gray-500 py-1" : ""
             )}
           >
             {typing ? (
@@ -44,7 +61,16 @@ const ChatMessage: FC<ChatMessageProps> = ({ children, time, typing = false, isM
             )}
           </p>
         </div>
-        {time && !typing && <span className="mt-1 text-[0.5rem] text-gray-400">2:00PM</span>}
+        {time && !typing && (
+          <span
+            className={classNames(
+              "mt-1 text-[0.5rem] text-gray-400",
+              from === "SYSTEM" ? "text-center" : ""
+            )}
+          >
+            2:00PM
+          </span>
+        )}
       </div>
     </div>
   );
