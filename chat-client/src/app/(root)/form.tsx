@@ -34,12 +34,13 @@ const JoinRoomForm: FC<IProps> = ({ className }) => {
   return (
     <div className={className}>
       <Input
+        style={{ marginBottom: 20 }}
         onChange={(event) => onInputId(event.target.value)}
         placeholder="Nhập ID phòng..."
       />
       <Form onFinish={onJoinRoom}>
-        <div className="custom-scroll overflow-y-scroll max-h-[40vh] my-3 p-3">
-          {data && (
+        {data && (
+          <div className="custom-scroll overflow-y-scroll max-h-[40vh] mb-3 p-3 transition-all">
             <Radio.Group onChange={handleRoomChange} className="w-full">
               {data.map(({ room, isPrivate }) => {
                 return (
@@ -69,8 +70,8 @@ const JoinRoomForm: FC<IProps> = ({ className }) => {
                 );
               })}
             </Radio.Group>
-          )}
-        </div>
+          </div>
+        )}
 
         {selectedRoomId &&
           data?.some(

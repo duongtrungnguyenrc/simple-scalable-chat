@@ -8,6 +8,7 @@ import { getSessionMiddleware } from "@common/middlewares";
 import { ChatSocketAdapter } from "@modules/chat";
 import { AuthGuard } from "@modules/auth";
 import { AppModule } from "@modules/app";
+import { NatsOptions, Transport } from "@nestjs/microservices";
 
 async function bootstrap() {
   const app: INestApplication = await NestFactory.create(AppModule);
@@ -28,6 +29,13 @@ async function bootstrap() {
   app.use(passport.initialize());
   app.use(passport.session());
 
+  app.connectMicroservice<NatsOptions>({
+    transport: Transport.NATS,
+    options: {
+      servers: [configService.get<string>("NATS_SERVER_URL")],
+    },
+  });
+
   const config = new DocumentBuilder()
     .setTitle("Chat example")
     .addServer("/")
@@ -40,5 +48,6 @@ async function bootstrap() {
   SwaggerModule.setup("/", app, documentFactory);
 
   await app.listen(process.env.PORT ?? 3001);
+  await app.startAllMicroservices();
 }
 bootstrap();

@@ -1,34 +1,36 @@
 import { BadRequestException, ForbiddenException, Injectable, InternalServerErrorException } from "@nestjs/common";
-import { InjectModel } from "@nestjs/mongoose";
-import { isValidObjectId, Model, Types } from "mongoose";
-
-import { CreateMessageDto, CreateRoomDto, FindRoomResponseDto, MessageResponseDto } from "./dtos";
-import { hashPassword, InfiniteResponse, withMutateTransaction } from "@app/common";
-import { Message, Room } from "./schemas";
+import { isValidObjectId, Types } from "mongoose";
+import { Request } from "express";
 import { compare } from "bcrypt";
+
+import { CreateMessageDto, CreateRoomDto, FindRoomResponseDto, MessageResponseDto } from "../dtos";
+import { hashPassword, InfiniteResponse, withMutateTransaction } from "@app/common";
+import { MessageService } from "./message.service";
+import { RoomService } from "./room.service";
+import { Message, Room } from "../schemas";
 
 @Injectable()
 export class ChatService {
   constructor(
-    @InjectModel(Room.name) private readonly roomModel: Model<Room>,
-    @InjectModel(Message.name) private readonly messageModel: Model<Message>,
+    private readonly messageService: MessageService,
+    private readonly roomService: RoomService,
   ) {}
 
   async createRoom(userId: string, data: CreateRoomDto): Promise<Room> {
     try {
       const { password, ...roomData } = data;
 
-      const room: Room = await this.roomModel.create({
+      const room: Room = await this.roomService.create({
         ...roomData,
         author: new Types.ObjectId(userId),
         password: password ? await hashPassword(password) : undefined,
       });
 
-      const welcomeMessage: Message = await this.messageModel.create({
+      const welcomeMessage: Message = await this.messageService.create({
         content: `Đã tạo phòng "${room.name}"!`,
       });
 
-      await this.roomModel.updateOne({ _id: room._id }, { $push: { messages: welcomeMessage._id } });
+      await this.roomService.update({ _id: room._id }, { $push: { messages: welcomeMessage._id } });
 
       return room;
     } catch (error) {
@@ -37,11 +39,11 @@ export class ChatService {
   }
 
   async isExistingRoom(id: string): Promise<boolean> {
-    return !!(await this.roomModel.countDocuments({ _id: id }));
+    return !!(await this.roomService.count({ _id: id }));
   }
 
-  async joinRoom(roomId: string, userId: string, password?: string): Promise<void> {
-    const room: Room = await this.roomModel.findById(roomId);
+  async joinRoom(roomId: string, request: Request, password?: string): Promise<void> {
+    const room: Room = await this.roomService.find(roomId);
 
     if (!room) {
       throw new BadRequestException("Phòng không tồn tại");
@@ -60,11 +62,18 @@ export class ChatService {
     }
 
     try {
-      await this.roomModel.updateOne(
+      const user = request.user;
+
+      const joinMessage: Message = await this.messageService.create({
+        content: `${user.name} đã tham gia phòng"!`,
+      });
+
+      await this.roomService.update(
         { _id: roomId },
         {
           $push: {
-            members: new Types.ObjectId(userId),
+            members: new Types.ObjectId(user._id),
+            messages: joinMessage._id,
           },
         },
       );
@@ -73,19 +82,32 @@ export class ChatService {
     }
   }
 
-  async leaveRoom(roomId: string, userId: string): Promise<void> {
-    await this.roomModel.updateOne(
-      { _id: roomId },
-      {
-        $pull: {
-          members: new Types.ObjectId(userId),
+  async leaveRoom(roomId: string, request: Request): Promise<void> {
+    try {
+      const user = request.user;
+
+      const leaveMessage: Message = await this.messageService.create({
+        content: `${user.name} đã tham rời phòng"!`,
+      });
+
+      await this.roomService.update(
+        { _id: roomId },
+        {
+          $pull: {
+            members: new Types.ObjectId(user._id),
+          },
+          $push: {
+            messages: leaveMessage._id,
+          },
         },
-      },
-    );
+      );
+    } catch (error) {
+      throw new InternalServerErrorException("Lỗi khi tham gia phòng");
+    }
   }
 
   async deleteRoom(roomId: string, userId: string): Promise<void> {
-    const room: Room = await this.roomModel.findById(roomId);
+    const room: Room = await this.roomService.find(roomId);
 
     if (!room) {
       throw new BadRequestException("Phòng chat không tồn tại");
@@ -95,7 +117,7 @@ export class ChatService {
       throw new ForbiddenException("Bạn không phải chủ sở hữu phòng chat này");
     }
 
-    await this.roomModel.updateOne(
+    await this.roomService.update(
       { _id: roomId },
       {
         $pull: {
@@ -123,7 +145,7 @@ export class ChatService {
       filter.$or.push({ _id: query });
     }
 
-    const rooms: Room[] = await this.roomModel.find(filter).lean();
+    const rooms: Room[] = await this.roomService.findMultiple(filter);
 
     return rooms.map((room) => {
       const { messages, password, ...rest } = room;
@@ -137,12 +159,10 @@ export class ChatService {
   }
 
   async getJoinedChatRooms(userId: string, { page, limit }: Pagination): Promise<InfiniteResponse<Room>> {
-    const skip = (page - 1) * limit;
-
     const userObjectId = new Types.ObjectId(userId);
 
-    const rooms: Room[] = await this.roomModel
-      .find({
+    return await this.roomService.findMultipleInfinite(
+      {
         $or: [
           {
             author: userObjectId,
@@ -152,33 +172,19 @@ export class ChatService {
           },
         ],
         isDeleted: false,
-      })
-      .skip(skip)
-      .limit(limit)
-      .sort({ updatedAt: -1 })
-      .populate({
-        path: "messages",
-        options: { sort: { createdAt: -1 }, limit: 1 },
-      })
-      .lean();
-
-    const nextCursor = rooms.length === limit ? page + 1 : undefined;
-
-    const response: InfiniteResponse<Room> = {
-      data: rooms,
-      nextCursor,
-    };
-
-    return response;
+      },
+      page,
+      limit,
+    );
   }
 
   async pushMessage(userId: string, data: CreateMessageDto): Promise<MessageResponseDto> {
-    const session = await this.messageModel.db.startSession();
+    const session = await this.messageService.getModel().db.startSession();
 
     return withMutateTransaction(session, async (session) => {
       const { roomId, ...messageData } = data;
 
-      const [newMessage]: Message[] = await this.messageModel.create(
+      const [newMessage]: Message[] = await this.messageService.create(
         [
           {
             ...messageData,
@@ -188,7 +194,7 @@ export class ChatService {
         { session },
       );
 
-      this.roomModel.findByIdAndUpdate(
+      this.roomService.update(
         roomId,
         {
           $push: {
@@ -210,40 +216,45 @@ export class ChatService {
 
   async getMessages(userId: string, roomId: string, pagination: Pagination): Promise<InfiniteResponse<MessageResponseDto>> {
     const { page, limit } = pagination;
-    const room: Room = await this.roomModel.findById(roomId);
+
+    const userObjectId = new Types.ObjectId(userId);
+
+    const room: Room = await this.roomService.find(
+      {
+        _id: new Types.ObjectId(roomId),
+        $or: [
+          {
+            author: userObjectId,
+          },
+          {
+            members: userObjectId,
+          },
+        ],
+      },
+      ["messages"],
+    );
 
     if (!room) throw new BadRequestException("Phòng chat không tồn tại");
-    if (room.members.findIndex((member) => member._id === userId) === -1 && room.author._id != userId) {
-      throw new BadRequestException("Bạn chưa tham gia phòng chat này");
-    }
 
-    const skip = room.messages.length - page * limit;
+    const response: InfiniteResponse<Message> = await this.messageService.findMultipleInfinite(
+      { _id: { $in: room.messages } },
+      page,
+      limit,
+      undefined,
+      undefined,
+      { createdAt: 1 },
+    );
 
-    const messages: Message[] = await this.messageModel
-      .find({ _id: { $in: room.messages } })
-      .sort({ createdAt: 1 })
-      .skip(skip >= 0 ? skip : 0)
-      .limit(limit);
-
-    const totalRooms: number = await this.messageModel.countDocuments({ _id: { $in: room.messages } });
-    const pages: number = Math.floor(totalRooms / limit);
-
-    const nextCursor: number = page < pages ? page + 1 : undefined;
-
-    const mappedMessages: MessageResponseDto[] = messages.map((message) => {
-      return {
-        _id: message._id.toString(),
-        from: !!message.user ? (message.user._id === userId ? "ME" : "OTHERS") : "SYSTEM",
-        content: message.content,
-        createdAt: message.createdAt.toLocaleDateString("vi-VN"),
-      };
-    });
-
-    const response: InfiniteResponse<MessageResponseDto> = {
-      nextCursor,
-      data: mappedMessages,
+    return {
+      ...response,
+      data: response.data.map((message) => {
+        return {
+          _id: message._id.toString(),
+          from: !!message.user ? (message.user._id === userId ? "ME" : "OTHERS") : "SYSTEM",
+          content: message.content,
+          createdAt: message.createdAt ? new Date(message.createdAt).toLocaleDateString("vi-VN") : undefined,
+        };
+      }),
     };
-
-    return response;
   }
 }

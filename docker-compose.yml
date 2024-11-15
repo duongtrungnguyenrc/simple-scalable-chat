@@ -1,14 +1,106 @@
-version: '3.5'
-
 services:
-  mongodb:
+  mongodb-1:
     image: mongo:6.0
-    container_name: mongodb
+    container_name: mongodb-1
     restart: always
     ports:
       - "27017:27017"
     volumes:
-      - mongodb_data:/data/db
+      - mongodb1_data:/data/db
+    networks:
+      - chat-network
+
+  mongodb-2:
+    image: mongo:6.0
+    container_name: mongodb-2
+    restart: always
+    ports:
+      - "27018:27017"
+    volumes:
+      - mongodb2_data:/data/db
+    networks:
+      - chat-network
+
+  mongodb-3:
+    image: mongo:6.0
+    container_name: mongodb-3
+    restart: always
+    ports:
+      - "27019:27017"
+    volumes:
+      - mongodb3_data:/data/db
+    networks:
+      - chat-network
+
+  chat-server-1:
+    container_name: chat-server-1
+    build:
+      context: ./chat-server
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - MONGODB_URI=mongodb://mongodb-1:27017/chat
+      - REDIS_URL=redis://redis:6379
+      - REDIS_TTL=3600000
+      - CLIENT_IP_ORIGIN=http://127.0.0.1:3000
+      - CLIENT_ORIGIN=http://localhost:3000
+      - SESSION_SECRET=af2693b7-a522-4979-9e7b-a3c4d963a210
+      - NATS_SERVER_URL=nats://nats
+    networks:
+      - chat-network
+    depends_on:
+      - nats
+
+  chat-server-2:
+    container_name: chat-server-2
+    build:
+      context: ./chat-server
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - MONGODB_URI=mongodb://mongodb-2:27017/chat
+      - REDIS_URL=redis://redis:6379
+      - REDIS_TTL=3600000
+      - CLIENT_IP_ORIGIN=http://127.0.0.1:3000
+      - CLIENT_ORIGIN=http://localhost:3000
+      - SESSION_SECRET=af2693b7-a522-4979-9e7b-a3c4d963a210
+      - NATS_SERVER_URL=nats://nats
+    networks:
+      - chat-network
+    depends_on:
+      - nats
+  
+  chat-server-3:
+    container_name: chat-server-3
+    build:
+      context: ./chat-server
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - MONGODB_URI=mongodb://mongodb-3:27017/chat
+      - REDIS_URL=redis://redis:6379
+      - REDIS_TTL=3600000
+      - CLIENT_IP_ORIGIN=http://127.0.0.1:3000
+      - CLIENT_ORIGIN=http://localhost:3000
+      - SESSION_SECRET=af2693b7-a522-4979-9e7b-a3c4d963a210
+      - NATS_SERVER_URL=nats://nats
+    networks:
+      - chat-network
+    depends_on:
+      - nats
+
+  chat-client:
+    build:
+      context: ./chat-client
+      dockerfile: Dockerfile
+    container_name: chat-client
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - nginx
+    environment:
+      - NEXT_PUBLIC_API_URL=http://nginx/api
     networks:
       - chat-network
 
@@ -21,39 +113,13 @@ services:
     networks:
       - chat-network
 
-  chat-server:
-    build:
-      context: ./chat-server
-      dockerfile: Dockerfile
-    restart: always
-    deploy:
-      replicas: 3 
+  nats:
+    container_name: nats
+    image: nats
     ports:
-      - "3001"
-    environment:
-      - MONGODB_URI=mongodb://mongodb:27017/chat
-      - REDIS_URL=redis://redis:6379
-      - REDIS_TTL=3600000
-      - CLIENT_IP_ORIGIN=http://127.0.0.1:3000
-      - CLIENT_ORIGIN=http://localhost:3000
-      - SESSION_SECRET=af2693b7-a522-4979-9e7b-a3c4d963a210
+      - "4222:4222"
     networks:
       - chat-network
-
-  # chat-client:
-  #   build:
-  #     context: ./chat-client
-  #     dockerfile: Dockerfile
-  #   container_name: chat-client
-  #   restart: always
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - nginx
-  #   environment:
-  #     - NEXT_PUBLIC_API_URL=http://nginx/api
-  #   networks:
-  #     - chat-network
 
   nginx:
     image: nginx:latest
@@ -64,12 +130,16 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:
-      - chat-server
+      - chat-server-1
+      - chat-server-2
+      - chat-server-3
     networks:
       - chat-network
 
 volumes:
-  mongodb_data:
+  mongodb1_data:
+  mongodb2_data:
+  mongodb3_data:
 
 networks:
   chat-network:

@@ -1,1 +1,1 @@
-export * from "./chat-socket-adapter.util"
+export * from "./chat-socket-adapter.util";

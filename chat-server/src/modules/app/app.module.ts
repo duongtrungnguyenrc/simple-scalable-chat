@@ -3,16 +3,20 @@ import { PassportModule } from "@nestjs/passport";
 import { MongooseModule } from "@nestjs/mongoose";
 import { Module } from "@nestjs/common";
 
+import { NatsClientModule } from "@modules/nats-client";
+import { DataSyncModule } from "@modules/data-sync";
 import { CacheModule } from "@modules/cache";
 import { ChatModule } from "@modules/chat";
-import { UserModule } from "@modules/user";
 import { AuthModule } from "@modules/auth";
+import { UserModule } from "@modules/user";
 
 @Module({
   imports: [
     UserModule,
     ChatModule,
     AuthModule,
+    NatsClientModule,
+    DataSyncModule,
     CacheModule.forRoot(),
     PassportModule.register({ session: true }),
     ConfigModule.forRoot({ isGlobal: true }),

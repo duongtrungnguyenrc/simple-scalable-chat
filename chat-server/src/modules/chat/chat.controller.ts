@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Post } from "@nestjs/common";
+import { Body, Controller, Delete, Get, Param, Post, Req } from "@nestjs/common";
 import { ApiParam, ApiResponse, ApiTags } from "@nestjs/swagger";
 
 import { ApiPagination, AuthUid, Pagination } from "@common/decorators";
 import { CreateRoomDto, FindRoomResponseDto, JoinRoomDto } from "./dtos";
-import { ChatService } from "./chat.service";
+import { ChatService } from "./services/chat.service";
+import { Request } from "express";
 
 @Controller("chat")
 @ApiTags("chat")
@@ -16,13 +17,13 @@ export class ChatController {
   }
 
   @Post("/join/:id")
-  async joinChatRoom(@Param("id") roomId: string, @AuthUid() userId: string, @Body() { password }: JoinRoomDto) {
-    return await this.chatService.joinRoom(roomId, userId, password);
+  async joinChatRoom(@Param("id") roomId: string, @Req() request: Request, @Body() { password }: JoinRoomDto) {
+    return await this.chatService.joinRoom(roomId, request, password);
   }
 
   @Post("/leave/:id")
-  async leaveChatRoom(@Param("id") roomId: string, @AuthUid() userId: string) {
-    return await this.chatService.leaveRoom(roomId, userId);
+  async leaveChatRoom(@Param("id") roomId: string, @Req() request: Request) {
+    return await this.chatService.leaveRoom(roomId, request);
   }
 
   @Get("/")

@@ -8,25 +8,25 @@ import { CreateUserDto, User, UserService } from "@modules/user";
 export class AuthService {
   constructor(private readonly userService: UserService) {}
 
-  async validateUser(email: string, password: string): Promise<Omit<User, "password"> | undefined> {
-    const user: User = await this.userService.getUser(
+  async validateUser(email: string, password: string): Promise<SessionUser | undefined> {
+    const user: User = await this.userService.find(
       {
         email: email,
       },
       ["password"],
-      true,
     );
 
     if (!user) return;
 
     const isValid: boolean = await compare(password, user.password);
 
-    if (isValid)
-      return {
-        _id: user._id,
-        email: user.email,
-        name: user.name,
-      };
+    if (!isValid) return;
+
+    return {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+    };
   }
 
   async signIn(request: Request): Promise<Express.User> {
@@ -41,7 +41,7 @@ export class AuthService {
   }
 
   async signUp(data: CreateUserDto): Promise<Omit<User, "password">> {
-    const isExistingUser: boolean = !!(await this.userService.getUser({ email: data.email }, [], true));
+    const isExistingUser: boolean = !!(await this.userService.find({ email: data.email }));
 
     if (isExistingUser) {
       throw new BadRequestException("User already exists");

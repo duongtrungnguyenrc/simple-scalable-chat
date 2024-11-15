@@ -4,7 +4,7 @@ import { Logger, UseGuards } from "@nestjs/common";
 
 import { CreateMessageDto, MessageResponseDto } from "./dtos";
 import { SocketAuth } from "@modules/auth/guards";
-import { ChatService } from "./chat.service";
+import { ChatService } from "./services/chat.service";
 import { SocketAuthUid } from "@app/common";
 
 @WebSocketGateway({ namespace: "chat" })

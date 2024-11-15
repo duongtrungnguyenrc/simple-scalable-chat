@@ -60,7 +60,7 @@ const AdminChatBody: FC<AdminChatBodyProps> = ({
               </p>
             </div>
             <div className="flex-1 flex justify-end self-center">
-              <ChatActionMenu id={activeRoom._id} isYour={true} />
+              <ChatActionMenu id={activeRoom._id} isYour={false} />
             </div>
           </div>
           <div className="flex-1 overflow-y-auto custom-scroll w-full py-5">
